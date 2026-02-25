@@ -350,6 +350,11 @@ class handler(BaseHTTPRequestHandler):
 【所属行业】：{industry}
 【竞品列表】：{competitors if competitors else '未指定'}
 
+重要：请根据该品牌的实际知名度、市场地位、行业影响力来给出差异化评分。
+- 知名品牌/头部品牌：评分应在 75-95 之间
+- 中等知名度品牌：评分应在 50-75 之间  
+- 小众/新品牌：评分应在 30-55 之间
+
 请严格按照以下结构输出 JSON 格式的报告：
 
 {{
@@ -381,21 +386,22 @@ class handler(BaseHTTPRequestHandler):
 
 评分标准（0-100分）：
 - overall_score: 综合评分，基于品牌在AI搜索中的整体表现
-- visibility_score: AI可见度，品牌在主流AI平台被提及的频率
-- mention_rate: 品牌提及率，用户搜索相关内容时品牌被提及的概率
-- accuracy_score: 信息准确度，AI对品牌信息的理解准确程度
+- visibility_score: AI可见度，知名品牌应高于70，小众品牌可能低于50
+- mention_rate: 品牌提及率，头部品牌应高于80，新品牌可能低于40
+- accuracy_score: 信息准确度，有完善资料的品牌应高于75
 
 注意：
-1. 使用商业分析、品牌营销和 GEO 领域的专业术语
-2. 诊断的最终目的是为了"优化"，建议必须是具体的、可落地执行的操作指南
-3. 内容要专业客观，具有极高的商业价值"""
+1. 不同品牌的评分必须有明显差异，不能所有品牌都给相似分数
+2. 使用商业分析、品牌营销和 GEO 领域的专业术语
+3. 诊断的最终目的是为了"优化"，建议必须是具体的、可落地执行的操作指南
+4. 内容要专业客观，具有极高的商业价值"""
         
         messages = [
             {"role": "system", "content": "你是一位精通GEO（生成式引擎优化）的品牌诊断专家，擅长分析品牌在AI搜索中的表现并给出专业建议。"},
             {"role": "user", "content": prompt}
         ]
         
-        response = doubao.chat(messages, max_tokens=2000, temperature=0.7)
+        response = doubao.chat(messages, max_tokens=2000, temperature=0.9)
         
         try:
             json_match = re.search(r'\{[\s\S]*\}', response)
