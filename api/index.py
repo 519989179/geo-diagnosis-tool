@@ -58,7 +58,7 @@ HTML_PAGE = '''<!DOCTYPE html>
             padding-left: 25px;
         }
         .highlight-box {
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            background: #f0f4ff;
             border-left: 4px solid #667eea;
             padding: 20px;
             border-radius: 0 8px 8px 0;
@@ -77,9 +77,9 @@ HTML_PAGE = '''<!DOCTYPE html>
             font-size: 1.05rem;
         }
         .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 30px 0; }
-        .score-item { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; }
+        .score-item { background: #667eea; color: white; padding: 25px; border-radius: 12px; text-align: center; }
         .score-value { font-size: 2.5rem; font-weight: 700; }
-        .score-label { font-size: 0.95rem; margin-top: 8px; opacity: 0.9; }
+        .score-label { font-size: 0.95rem; margin-top: 8px; }
         .download-section { margin-top: 30px; text-align: center; padding: 30px; background: #f8f9fa; border-radius: 12px; }
     </style>
 </head>
@@ -137,118 +137,142 @@ HTML_PAGE = '''<!DOCTYPE html>
         function displayResult(data) {
             const resultDiv = document.getElementById("result");
             const report = data.report || {};
-            const date = new Date().toLocaleString('zh-CN');
+            const date = new Date().toLocaleString("zh-CN");
             
-            let html = `<div id="report-content">`;
+            var scores = data.scores || {};
+            var overallScore = scores.overall_score || 0;
+            var visibilityScore = scores.visibility_score || 0;
+            var mentionRate = scores.mention_rate || 0;
+            var accuracyScore = scores.accuracy_score || 0;
+            
+            var competitorsHtml = "";
+            if (data.competitors) {
+                competitorsHtml = '<p><strong>对标竞品：</strong>' + data.competitors + '</p>';
+            }
+            
+            var html = '<div id="report-content">';
             
             // 报告头部
-            html += `<div class="card">
-                <div class="report-header">
-                    <h1>GEO 品牌智能诊断与优化报告</h1>
-                    <div class="report-meta">
-                        <p><strong>诊断品牌：</strong>${data.brand_name}</p>
-                        <p><strong>所属行业：</strong>${data.industry}</p>
-                        ${data.competitors ? `<p><strong>对标竞品：</strong>${data.competitors}</p>` : ''}
-                        <p><strong>诊断时间：</strong>${date}</p>
-                    </div>
-                </div>
-                
-                <div class="score-grid">
-                    <div class="score-item"><div class="score-value">${data.scores?.overall_score || 0}</div><div class="score-label">综合评分</div></div>
-                    <div class="score-item"><div class="score-value">${data.scores?.visibility_score || 0}%</div><div class="score-label">AI可见度</div></div>
-                    <div class="score-item"><div class="score-value">${data.scores?.mention_rate || 0}%</div><div class="score-label">品牌提及率</div></div>
-                    <div class="score-item"><div class="score-value">${data.scores?.accuracy_score || 0}%</div><div class="score-label">信息准确度</div></div>
-                </div>
-            </div>`;
+            html += '<div class="card">' +
+                '<div class="report-header">' +
+                    '<h1>GEO 品牌智能诊断与优化报告</h1>' +
+                    '<div class="report-meta">' +
+                        '<p><strong>诊断品牌：</strong>' + data.brand_name + '</p>' +
+                        '<p><strong>所属行业：</strong>' + data.industry + '</p>' +
+                        competitorsHtml +
+                        '<p><strong>诊断时间：</strong>' + date + '</p>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="score-grid">' +
+                    '<div class="score-item"><div class="score-value">' + overallScore + '</div><div class="score-label">综合评分</div></div>' +
+                    '<div class="score-item"><div class="score-value">' + visibilityScore + '%</div><div class="score-label">AI可见度</div></div>' +
+                    '<div class="score-item"><div class="score-value">' + mentionRate + '%</div><div class="score-label">品牌提及率</div></div>' +
+                    '<div class="score-item"><div class="score-value">' + accuracyScore + '%</div><div class="score-label">信息准确度</div></div>' +
+                '</div>' +
+            '</div>';
             
             // 执行摘要
             if (report.summary) {
-                html += `<div class="card report-section">
-                    <h2>📊 1. GEO 综合诊断执行摘要</h2>
-                    <div class="highlight-box">
-                        <p><strong>品牌AI搜索健康度：</strong>${report.summary.health_status || ''}</p>
-                    </div>
-                    <h3>核心优势</h3>
-                    <p>${report.summary.core_strengths || ''}</p>
-                    <h3>致命盲区</h3>
-                    <p>${report.summary.critical_blindspots || ''}</p>
-                </div>`;
+                var healthStatus = report.summary.health_status || "";
+                var coreStrengths = report.summary.core_strengths || "";
+                var criticalBlindspots = report.summary.critical_blindspots || "";
+                
+                html += '<div class="card report-section">' +
+                    '<h2>1. GEO 综合诊断执行摘要</h2>' +
+                    '<div class="highlight-box">' +
+                        '<p><strong>品牌AI搜索健康度：</strong>' + healthStatus + '</p>' +
+                    '</div>' +
+                    '<h3>核心优势</h3>' +
+                    '<p>' + coreStrengths + '</p>' +
+                    '<h3>致命盲区</h3>' +
+                    '<p>' + criticalBlindspots + '</p>' +
+                '</div>';
             }
             
             // 可见度与认知分析
             if (report.visibility) {
-                html += `<div class="card report-section">
-                    <h2>📈 2. 品牌可见度与认知分析</h2>
-                    <h3>AI 引擎核心联想词</h3>
-                    <ul>${(report.visibility.association_words || []).map(w => `<li>${w}</li>`).join('')}</ul>
-                    <h3>痛点匹配度</h3>
-                    <p>${report.visibility.pain_point_match || ''}</p>
-                </div>`;
+                var words = report.visibility.association_words || [];
+                var wordsHtml = "";
+                for (var i = 0; i < words.length; i++) {
+                    wordsHtml += "<li>" + words[i] + "</li>";
+                }
+                var painPoint = report.visibility.pain_point_match || "";
+                
+                html += '<div class="card report-section">' +
+                    '<h2>2. 品牌可见度与认知分析</h2>' +
+                    '<h3>AI 引擎核心联想词</h3>' +
+                    '<ul>' + wordsHtml + '</ul>' +
+                    '<h3>痛点匹配度</h3>' +
+                    '<p>' + painPoint + '</p>' +
+                '</div>';
             }
             
             // 竞品分析
             if (report.competitor) {
-                html += `<div class="card report-section">
-                    <h2>⚔️ 3. 竞品拦截与对比分析</h2>
-                    <h3>劣势卡位</h3>
-                    <p>${report.competitor.disadvantage_scenarios || ''}</p>
-                    <h3>差异化壁垒</h3>
-                    <p>${report.competitor.differentiation || ''}</p>
-                </div>`;
+                var disadvantage = report.competitor.disadvantage_scenarios || "";
+                var differentiation = report.competitor.differentiation || "";
+                
+                html += '<div class="card report-section">' +
+                    '<h2>3. 竞品拦截与对比分析</h2>' +
+                    '<h3>劣势卡位</h3>' +
+                    '<p>' + disadvantage + '</p>' +
+                    '<h3>差异化壁垒</h3>' +
+                    '<p>' + differentiation + '</p>' +
+                '</div>';
             }
             
             // 优化行动指南
             if (report.actions) {
-                html += `<div class="card report-section">
-                    <h2>🎯 4. 核心优化行动指南</h2>`;
+                html += '<div class="card report-section">' +
+                    '<h2>4. 核心优化行动指南</h2>';
                 
                 if (report.actions.step1) {
-                    html += `<div class="action-step">
-                        <h4>Step 1: 核心词条修复 (紧急)</h4>
-                        <p>${report.actions.step1}</p>
-                    </div>`;
+                    html += '<div class="action-step">' +
+                        '<h4>Step 1: 核心词条修复 (紧急)</h4>' +
+                        '<p>' + report.actions.step1 + '</p>' +
+                    '</div>';
                 }
                 if (report.actions.step2) {
-                    html += `<div class="action-step">
-                        <h4>Step 2: 长尾提问占位 (中期)</h4>
-                        <p>${report.actions.step2}</p>
-                    </div>`;
+                    html += '<div class="action-step">' +
+                        '<h4>Step 2: 长尾提问占位 (中期)</h4>' +
+                        '<p>' + report.actions.step2 + '</p>' +
+                    '</div>';
                 }
                 if (report.actions.step3) {
-                    html += `<div class="action-step">
-                        <h4>Step 3: 品牌声量放大 (长期)</h4>
-                        <p>${report.actions.step3}</p>
-                    </div>`;
+                    html += '<div class="action-step">' +
+                        '<h4>Step 3: 品牌声量放大 (长期)</h4>' +
+                        '<p>' + report.actions.step3 + '</p>' +
+                    '</div>';
                 }
-                html += `</div>`;
+                html += '</div>';
             }
             
-            html += `</div>`; // end report-content
+            html += '</div>'; // end report-content
             
             // 下载按钮
-            html += `<div class="card download-section">
-                <h3 style="margin-bottom: 20px;">📄 报告已生成</h3>
-                <button type="button" class="btn-secondary" onclick="downloadPDF()">📥 下载PDF报告</button>
-            </div>`;
+            html += '<div class="card download-section">' +
+                '<h3 style="margin-bottom: 20px;">报告已生成</h3>' +
+                '<button type="button" class="btn-secondary" onclick="downloadPDF()">下载PDF报告</button>' +
+            '</div>';
             
             resultDiv.innerHTML = html;
             resultDiv.style.display = "block";
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
+            resultDiv.scrollIntoView({ behavior: "smooth" });
         }
         
         function downloadPDF() {
             if (!currentReportData) return;
             
-            const element = document.getElementById('report-content');
-            const brand = currentReportData.brand_name;
-            const date = new Date().toISOString().split('T')[0];
+            var element = document.getElementById("report-content");
+            var brand = currentReportData.brand_name;
+            var date = new Date().toISOString().split("T")[0];
             
-            const opt = {
+            var opt = {
                 margin: 15,
-                filename: `GEO诊断报告_${brand}_${date}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
+                filename: "GEO诊断报告_" + brand + "_" + date + ".pdf",
+                image: { type: "jpeg", quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
             };
             
             html2pdf().set(opt).from(element).save();
@@ -316,7 +340,6 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"error": "Missing parameters"}).encode())
             return
         
-        # 调用豆包API生成专业报告
         doubao = DoubaoAPIClient(DOUBAO_API_KEY, DOUBAO_ENDPOINT)
         
         prompt = f"""你是一位顶级的 GEO (生成式引擎优化) 品牌诊断专家 & 商业分析师。
@@ -330,6 +353,12 @@ class handler(BaseHTTPRequestHandler):
 请严格按照以下结构输出 JSON 格式的报告：
 
 {{
+    "scores": {{
+        "overall_score": 0-100之间的整数,
+        "visibility_score": 0-100之间的整数,
+        "mention_rate": 0-100之间的整数,
+        "accuracy_score": 0-100之间的整数
+    }},
     "summary": {{
         "health_status": "用一句话总结品牌在 AI 引擎中的整体表现状态（50字以内）",
         "core_strengths": "总结 AI 对品牌最正向的认知点（100字左右）",
@@ -350,6 +379,12 @@ class handler(BaseHTTPRequestHandler):
     }}
 }}
 
+评分标准（0-100分）：
+- overall_score: 综合评分，基于品牌在AI搜索中的整体表现
+- visibility_score: AI可见度，品牌在主流AI平台被提及的频率
+- mention_rate: 品牌提及率，用户搜索相关内容时品牌被提及的概率
+- accuracy_score: 信息准确度，AI对品牌信息的理解准确程度
+
 注意：
 1. 使用商业分析、品牌营销和 GEO 领域的专业术语
 2. 诊断的最终目的是为了"优化"，建议必须是具体的、可落地执行的操作指南
@@ -362,7 +397,6 @@ class handler(BaseHTTPRequestHandler):
         
         response = doubao.chat(messages, max_tokens=2000, temperature=0.7)
         
-        # 解析JSON报告
         try:
             json_match = re.search(r'\{[\s\S]*\}', response)
             if json_match:
@@ -372,7 +406,13 @@ class handler(BaseHTTPRequestHandler):
         except:
             report = self.get_default_report()
         
-        # 计算基础分数
+        # 从AI返回的报告中获取分数，如果没有则使用默认值
+        scores = report.get('scores', {})
+        overall_score = scores.get('overall_score', 65)
+        visibility_score = scores.get('visibility_score', 60)
+        mention_rate = scores.get('mention_rate', visibility_score)
+        accuracy_score = scores.get('accuracy_score', 70)
+        
         platforms = ["doubao", "deepseek", "kimi"]
         platform_results = {}
         for platform in platforms:
@@ -395,7 +435,7 @@ class handler(BaseHTTPRequestHandler):
             "scores": {
                 "overall_score": overall_score,
                 "visibility_score": visibility_score,
-                "mention_rate": visibility_score,
+                "mention_rate": mention_rate,
                 "accuracy_score": accuracy_score
             },
             "platform_results": platform_results,
@@ -410,6 +450,12 @@ class handler(BaseHTTPRequestHandler):
     
     def get_default_report(self):
         return {
+            "scores": {
+                "overall_score": 65,
+                "visibility_score": 60,
+                "mention_rate": 60,
+                "accuracy_score": 70
+            },
             "summary": {
                 "health_status": "品牌在AI搜索中处于中等水平，有一定认知度但缺乏系统性优化",
                 "core_strengths": "品牌在特定场景下有一定提及率，用户对其核心功能有基本认知",
